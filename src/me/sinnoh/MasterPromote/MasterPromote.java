@@ -1,8 +1,11 @@
 package me.sinnoh.MasterPromote;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 
@@ -129,26 +132,33 @@ public class MasterPromote extends JavaPlugin
 			@Override
 			public void run() 
 			{
-				for(String playername : timepromote.keySet())
-				{
-					if(sUtil.playerisonline(playername) || config.getBoolean("Time.CountOffline"))
-					{
-						Long timeleft = timepromote.get(playername);
-						timeleft = timeleft -1;
-						if(timeleft <=0)
-						{
-							String msg = messages.getString("PromotedAfterTime").replace("<group>", config.getString("Time.Group"));
-							Bukkit.getPlayer(playername).sendMessage(msg.replace("&", "\247"));
-							MasterPromotePermissions.promote(Bukkit.getPlayer(playername), config.getString("Time.Group"), PROMOTIONTYPE.TIME);
-							timepromote.remove(playername);
-						}
-						else
-						{
-						timepromote.remove(playername);
-						timepromote.put(playername, timeleft);
-						}
-					}
-				}
+        
+			    List<String> promotedPlayers = new ArrayList<String>();			    
+			    synchronized (timepromote) {
+    				for(String playername : timepromote.keySet())
+    				{
+    					if(sUtil.playerisonline(playername) || config.getBoolean("Time.CountOffline"))
+    					{
+    						Long timeleft = timepromote.get(playername);
+    						timeleft = timeleft -1;
+    						if(timeleft <=0)
+    						{
+    							String msg = messages.getString("PromotedAfterTime").replace("<group>", config.getString("Time.Group"));
+    							Bukkit.getPlayer(playername).sendMessage(msg.replace("&", "\247"));
+    							MasterPromotePermissions.promote(Bukkit.getPlayer(playername), config.getString("Time.Group"), PROMOTIONTYPE.TIME);
+    							promotedPlayers.add(playername);
+    						}
+    						else
+    						{
+    						    timepromote.put(playername, timeleft);
+    						}
+    					}
+    				}
+
+    				for (String string : promotedPlayers) {
+    				    timepromote.remove(string);
+                    }
+			    }
 			}
 
 		}, 0L, 20L);
